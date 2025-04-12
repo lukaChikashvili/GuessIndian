@@ -1,12 +1,13 @@
 import { useGLTF } from '@react-three/drei'
-import React, { useEffect, useRef, useState } from 'react'
-import { useFrame } from '@react-three/fiber'
+import React, { useRef, useState } from 'react'
+import { useFrame, useThree } from '@react-three/fiber'
+import * as THREE from 'three'
 
-const HoverBag = ({ position = [0, 0, 0], model }) => {
+const HoverBag = ({ position = [0, 0, 0], model, onSelect }) => {
   const ref = useRef()
   const [hovered, setHovered] = useState(false)
+  const [clicked, setClicked] = useState(false)
 
-  
   useFrame(() => {
     if (ref.current) {
       const targetY = hovered ? 0.3 : 0
@@ -14,22 +15,24 @@ const HoverBag = ({ position = [0, 0, 0], model }) => {
     }
   })
 
-  
-
+  const handlePlaneClick = () => {
+    setClicked(true)
+    onSelect(position) 
+  }
 
   return (
     <group position={position}>
-   
+      
       <mesh
         rotation={[-Math.PI / 2, 0, 0]}
         position={[0, -1, 0]}
         receiveShadow
+        onClick={handlePlaneClick}
       >
         <planeGeometry args={[1.5, 1.5]} />
-        <meshStandardMaterial color="gray" />
+        <meshStandardMaterial color={clicked ? 'green' : 'gray'} />
       </mesh>
 
-    
       <group
         ref={ref}
         onPointerOver={() => setHovered(true)}
@@ -43,12 +46,26 @@ const HoverBag = ({ position = [0, 0, 0], model }) => {
 
 const Experience = () => {
   const model = useGLTF('./glovo_backpack.glb')
+  const { camera } = useThree()
+  const targetPositionRef = useRef(null)
+
+  useFrame(() => {
+    if (targetPositionRef.current) {
+      const target = targetPositionRef.current.clone().add(new THREE.Vector3(0, 1, 5)) // Offset so camera stays back a bit
+      camera.position.lerp(target, 0.05)
+      camera.lookAt(targetPositionRef.current)
+    }
+  })
+
+  const handleSelectBag = (bagPosition) => {
+    targetPositionRef.current = new THREE.Vector3(...bagPosition)
+  }
 
   return (
     <>
-      <HoverBag position={[-3, 0, 0]} color="lime" model={model} />
-      <HoverBag position={[0, 0, 0]} color="orange" model={model} />
-      <HoverBag position={[3, 0, 0]} color="skyblue" model={model} />
+      <HoverBag position={[-3, 0, 0]} model={model} onSelect={handleSelectBag} />
+      <HoverBag position={[0, 0, 0]} model={model} onSelect={handleSelectBag} />
+      <HoverBag position={[3, 0, 0]} model={model} onSelect={handleSelectBag} />
     </>
   )
 }
