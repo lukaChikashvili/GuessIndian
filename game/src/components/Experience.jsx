@@ -2,6 +2,8 @@ import { Html, useGLTF } from '@react-three/drei'
 import React, { useEffect, useRef, useState } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
+import IndianModal from './IndianModal'
+import GeoModal from './GeoModal'
 
 const HoverBag = ({ position = [0, 0, 0], model, onSelect, index, driver }) => {
     const ref = useRef()
@@ -48,6 +50,10 @@ const Experience = () => {
   const targetPositionRef = useRef(null);
   const [georgiansFound, setGeorgiansFound] = useState(0)
 
+  const [clickedBags, setClickedBags] = useState([false, false, false]);
+
+  const [indianModal, setIndianModal] = useState(false);
+  const [geoModal, setGeoModal] = useState(false);
   const [numberModal, setNumberModal] = useState(false);
 
   const [drivers, setDrivers] = useState([]);
@@ -63,25 +69,39 @@ const Experience = () => {
     shuffleDrivers();
   }, [])
 
-
   const handleSelectBag = (bagPosition, index, driver) => {
+    setClickedBags(prev => {
+      const updated = [...prev];
+      updated[index] = true;
+      return updated;
+    });
+  
     targetPositionRef.current = new THREE.Vector3(...bagPosition)
     setNumberModal(index + 1);
     console.log('Behind the bag is:', driver);
+    
     if (driver === 'Indian') {
-        alert('Game Over! You found the Indian driver.')
-        
-      } else {
-        setGeorgiansFound((prev) => {
-          const newCount = prev + 1
-          if (newCount === 2) {
-            alert('🎉 You Win! You found both Georgian drivers!')
-           
-          }
-          return newCount
-        });
-
+      setIndianModal(true);
+    } else {
+      setGeorgiansFound((prev) => {
+        const newCount = prev + 1;
+        if (newCount === 2) {
+          setGeoModal(true);
+        }
+        return newCount;
+      });
     }
+  };
+
+  const playAgain = () => {
+    setGeorgiansFound(0);
+    setIndianModal(false);
+    setGeoModal(false);
+    setNumberModal(false);
+    setClickedBags([false, false, false]); 
+    shuffleDrivers(); 
+    targetPositionRef.current = null;
+
   }
 
   return (
@@ -96,6 +116,22 @@ const Experience = () => {
 )}
       <HoverBag position={[0, 0, 0]} model={model} onSelect={handleSelectBag} index={1} driver={drivers[1]} />
       <HoverBag position={[3, 0, 0]} model={model} onSelect={handleSelectBag} index={2} driver={drivers[2]} />
+
+      {indianModal && (
+         <Html>
+            <div className='indian'>
+                <IndianModal />
+            </div>
+         </Html>
+      )}
+
+{geoModal && (
+         <Html>
+            <div className='georgian'>
+                <GeoModal play={playAgain}/>
+            </div>
+         </Html>
+      )}
     </>
   )
 }
