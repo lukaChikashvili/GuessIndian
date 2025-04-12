@@ -1,9 +1,9 @@
-import { useGLTF } from '@react-three/drei'
+import { Html, useGLTF } from '@react-three/drei'
 import React, { useRef, useState } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 
-const HoverBag = ({ position = [0, 0, 0], model, onSelect }) => {
+const HoverBag = ({ position = [0, 0, 0], model, onSelect, index }) => {
   const ref = useRef()
   const [hovered, setHovered] = useState(false)
   const [clicked, setClicked] = useState(false)
@@ -17,12 +17,11 @@ const HoverBag = ({ position = [0, 0, 0], model, onSelect }) => {
 
   const handlePlaneClick = () => {
     setClicked(true)
-    onSelect(position) 
+    onSelect(position, index) 
   }
 
   return (
     <group position={position}>
-      
       <mesh
         rotation={[-Math.PI / 2, 0, 0]}
         position={[0, -1, 0]}
@@ -30,7 +29,7 @@ const HoverBag = ({ position = [0, 0, 0], model, onSelect }) => {
         onClick={handlePlaneClick}
       >
         <planeGeometry args={[1.5, 1.5]} />
-        <meshStandardMaterial color={clicked ? 'green' : 'gray'} />
+        <meshStandardMaterial color={clicked ? '#169976' : 'gray'} />
       </mesh>
 
       <group
@@ -47,25 +46,35 @@ const HoverBag = ({ position = [0, 0, 0], model, onSelect }) => {
 const Experience = () => {
   const model = useGLTF('./glovo_backpack.glb')
   const { camera } = useThree()
-  const targetPositionRef = useRef(null)
+  const targetPositionRef = useRef(null);
+
+  const [numberModal, setNumberModal] = useState(false);
 
   useFrame(() => {
     if (targetPositionRef.current) {
-      const target = targetPositionRef.current.clone().add(new THREE.Vector3(0, 1, 5)) // Offset so camera stays back a bit
-      camera.position.lerp(target, 0.05)
+      const target = targetPositionRef.current.clone().add(new THREE.Vector3(0, 1, 5))
+      camera.position.lerp(target, 0.019)
       camera.lookAt(targetPositionRef.current)
     }
   })
 
-  const handleSelectBag = (bagPosition) => {
+  const handleSelectBag = (bagPosition, index) => {
     targetPositionRef.current = new THREE.Vector3(...bagPosition)
+    setNumberModal(index + 1);
   }
 
   return (
     <>
-      <HoverBag position={[-3, 0, 0]} model={model} onSelect={handleSelectBag} />
-      <HoverBag position={[0, 0, 0]} model={model} onSelect={handleSelectBag} />
-      <HoverBag position={[3, 0, 0]} model={model} onSelect={handleSelectBag} />
+      <HoverBag position={[-3, 0, 0]} model={model} onSelect={handleSelectBag} index={0} />
+      { (
+  <Html center>
+    <div className="numbermodal">
+      <h2>{numberModal}</h2>
+    </div>
+  </Html>
+)}
+      <HoverBag position={[0, 0, 0]} model={model} onSelect={handleSelectBag} index={1} />
+      <HoverBag position={[3, 0, 0]} model={model} onSelect={handleSelectBag} index={2} />
     </>
   )
 }
