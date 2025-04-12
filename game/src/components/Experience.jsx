@@ -45,8 +45,8 @@ const HoverBag = ({ position = [0, 0, 0], model, onSelect, index, driver }) => {
 
 const Experience = () => {
   const model = useGLTF('./glovo_backpack.glb')
-  const { camera } = useThree()
   const targetPositionRef = useRef(null);
+  const [georgiansFound, setGeorgiansFound] = useState(0)
 
   const [numberModal, setNumberModal] = useState(false);
 
@@ -63,18 +63,25 @@ const Experience = () => {
     shuffleDrivers();
   }, [])
 
-  useFrame(() => {
-    if (targetPositionRef.current) {
-      const target = targetPositionRef.current.clone().add(new THREE.Vector3(0, 1, 5))
-      camera.position.lerp(target, 0.019)
-      camera.lookAt(targetPositionRef.current)
-    }
-  })
 
   const handleSelectBag = (bagPosition, index, driver) => {
     targetPositionRef.current = new THREE.Vector3(...bagPosition)
     setNumberModal(index + 1);
     console.log('Behind the bag is:', driver);
+    if (driver === 'Indian') {
+        alert('Game Over! You found the Indian driver.')
+        
+      } else {
+        setGeorgiansFound((prev) => {
+          const newCount = prev + 1
+          if (newCount === 2) {
+            alert('🎉 You Win! You found both Georgian drivers!')
+           
+          }
+          return newCount
+        });
+
+    }
   }
 
   return (
