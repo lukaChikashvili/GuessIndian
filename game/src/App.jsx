@@ -9,7 +9,7 @@ function App() {
    
   return (
     <>
-      <Canvas>
+      <Canvas camera={{ position: [0, 3, 5], fov: 50 }}>
          <CanvasPage />
          <Lights />
       </Canvas>
